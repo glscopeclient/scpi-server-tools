@@ -38,7 +38,7 @@ using namespace std;
 SCPIServer::SCPIServer(ZSOCKET sock)
 	: m_socket(sock)
 {
-	LogVerbose("Client connected to SCPI plane socket\n");
+	LogVerbose("Client connected to SCPI socket\n");
 
 	if(!m_socket.DisableNagle())
 		LogWarning("Failed to disable Nagle on socket, performance may be poor\n");
@@ -161,5 +161,34 @@ void SCPIServer::ParseLine(
 			args.push_back(tmp);
 		else
 			cmd = tmp;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Main event loop
+
+void SCPIServer::MainLoop()
+{
+	//Main command loop
+	string line;
+	string cmd;
+	bool query;
+	string subject;
+	vector<string> args;
+	while(true)
+	{
+		//Get the inbound command
+		if(!RecvCommand(line))
+			break;
+		LogTrace((line + "\n").c_str());
+		ParseLine(line, subject, cmd, query, args);
+
+		//Process the command
+		if(query)
+			OnQuery(line, subject, cmd, args);
+		else if(cmd == "EXIT")
+			break;
+		else
+			OnCommand(line, subject, cmd, args);
 	}
 }

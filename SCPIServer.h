@@ -43,8 +43,11 @@ public:
 	SCPIServer(ZSOCKET sock);
 	virtual ~SCPIServer();
 
-	bool SendReply(const std::string& cmd);
+	void MainLoop();
+
+protected:
 	bool RecvCommand(std::string& str);
+	bool SendReply(const std::string& cmd);
 
 	void ParseLine(
 		const std::string& line,
@@ -52,6 +55,27 @@ public:
 		std::string& cmd,
 		bool& query,
 		std::vector<std::string>& args);
+
+	virtual void OnCommand(
+		const std::string& line,
+		const std::string& subject,
+		const std::string& cmd,
+		const std::vector<std::string>& args) =0;
+
+	virtual void OnQuery(
+		const std::string& line,
+		const std::string& subject,
+		const std::string& cmd,
+		const std::vector<std::string>& args) =0;
+
+	/**
+		@brief Converts a string name (for example "C2") to an implementation-specific numeric channel ID.
+
+		This function returns zero if the subject is not a well formed channel name.
+
+		@param subject The channel name
+	 */
+	virtual size_t GetChannelID(const std::string& subject) =0;
 
 protected:
 	Socket m_socket;
