@@ -185,7 +185,7 @@ void SCPIServer::MainLoop()
 
 		//Process the command
 		if(query)
-			OnQuery(line, subject, cmd, args);
+			OnQuery(line, subject, cmd);
 		else if(cmd == "EXIT")
 			break;
 		else

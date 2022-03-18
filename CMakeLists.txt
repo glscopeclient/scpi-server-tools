@@ -2,6 +2,7 @@
 # Intended to be integrated into a larger project, not built standalone.
 
 add_library(scpi-server-tools STATIC
+	BridgeSCPIServer.cpp
 	SCPIServer.cpp)
 
 target_include_directories(scpi-server-tools

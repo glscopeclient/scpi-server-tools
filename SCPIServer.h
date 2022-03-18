@@ -62,11 +62,19 @@ protected:
 		const std::string& cmd,
 		const std::vector<std::string>& args) =0;
 
-	virtual void OnQuery(
+	/**
+		@brief Process a query command
+
+		@param line		Full SCPI line (for display in error messages or logs)
+		@param subject	Subject of the SCPI command (for example "C2" in "C2:OFFS?")
+		@param cmd		Command (for example "OFFS" in "C2:OFFS?")
+
+		@return True if the command was recognized and processed, false if unknown or invalid.
+	 */
+	virtual bool OnQuery(
 		const std::string& line,
 		const std::string& subject,
-		const std::string& cmd,
-		const std::vector<std::string>& args) =0;
+		const std::string& cmd) =0;
 
 	/**
 		@brief Converts a string name (for example "C2") to an implementation-specific numeric channel ID.
