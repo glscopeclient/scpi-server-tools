@@ -102,17 +102,17 @@ protected:
 	/**
 		@brief Arm the device for capture. If oneShot, capture only one waveform
 	 */
-	virtual void AcquisitonStart(bool oneShot = false) =0;
+	virtual void AcquisitionStart(bool oneShot = false) =0;
 
 	/**
 		@brief Force the device to capture a waveform
 	 */
-	virtual void AcquisitonForceTrigger() =0;
+	virtual void AcquisitionForceTrigger() =0;
 
 	/**
 		@brief Stop the device from capturing further waveforms
 	 */
-	virtual void AcquisitonStop() =0;
+	virtual void AcquisitionStop() =0;
 
 
 	//-- Probe Configuration --//
@@ -162,14 +162,14 @@ protected:
 
 	//-- (Edge) Trigger Configuration --//
 	/**
+		@brief Set the trigger's level to `level` in Volts
+	 */
+	virtual void SetTriggerLevel(double level_V) =0;
+	
+	/**
 		@brief Configure the device to use an edge trigger
 	 */
 	virtual void SetTriggerTypeEdge() =0;
-
-	/**
-		@brief Set the edge trigger's level to `level` in Volts
-	 */
-	virtual void SetEdgeTriggerLevel(double level_V) =0;
 
 	/**
 		@brief Set the edge trigger's activation to the edge `edge`

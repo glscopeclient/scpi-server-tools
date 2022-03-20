@@ -83,13 +83,13 @@ bool BridgeSCPIServer::OnCommand(const std::string& line, const std::string& sub
 		// Device commands
 
 		if (cmd == "START")
-			AcquisitonStart(false);
+			AcquisitionStart(false);
 		else if (cmd == "SINGLE")
-			AcquisitonStart(true);
+			AcquisitionStart(true);
 		else if (cmd == "FORCE")
-			AcquisitonForceTrigger();
+			AcquisitionForceTrigger();
 		else if (cmd == "STOP")
-			AcquisitonStop();
+			AcquisitionStop();
 		else if (cmd == "RATE" && args.size() == 1) {
 			uint64_t arg;
 			if (ParseUint64(args[0], arg))
@@ -133,7 +133,7 @@ bool BridgeSCPIServer::OnCommand(const std::string& line, const std::string& sub
 			else if (cmd == "LEV" && args.size() == 1) {
 				double arg;
 				if (ParseDouble(args[0], arg))
-					SetEdgeTriggerLevel(arg);
+					SetTriggerLevel(arg);
 				else
 					return false;
 			}
@@ -144,8 +144,10 @@ bool BridgeSCPIServer::OnCommand(const std::string& line, const std::string& sub
 		} else {
 			// Channel commands (probably)
 
-			size_t channelId = GetChannelID(subject);
-			if (channelId == -1) return false;
+			size_t channelId;
+			bool isDigital;
+
+			if (!GetChannelID(subject, channelId, isDigital)) return false;
 
 			if (cmd == "ON")
 				SetProbeEnabled(channelId, true);
