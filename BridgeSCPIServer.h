@@ -43,6 +43,12 @@ public:
 
 protected:
 
+	virtual bool OnCommand(
+		const std::string& line,
+		const std::string& subject,
+		const std::string& cmd,
+		const std::vector<std::string>& args);
+
 	virtual bool OnQuery(
 		const std::string& line,
 		const std::string& subject,
@@ -51,6 +57,10 @@ protected:
 	//Accessor methods for queries (must be overridden in derived classes)
 protected:
 
+	bool ParseDouble(const std::string& s, double& v);
+	bool ParseUint64(const std::string& s, uint64_t& v);
+
+	//-- Version Information Accessors --//
 	/**
 		@brief Returns the vendor / make of the instrument for *IDN? response
 	 */
@@ -71,6 +81,7 @@ protected:
 	 */
 	virtual std::string GetFirmwareVersion() =0;
 
+	//-- Hardware Capabilities --//
 	/**
 		@brief Returns the number of analog channels
 	 */
@@ -85,6 +96,86 @@ protected:
 		@brief Returns the set of currently valid memory depths
 	 */
 	virtual std::vector<size_t> GetSampleDepths() =0;
+
+
+	//-- Acquisition Commands --//
+	/**
+		@brief Arm the device for capture. If oneShot, capture only one waveform
+	 */
+	virtual void AcquisitonStart(bool oneShot = false) =0;
+
+	/**
+		@brief Force the device to capture a waveform
+	 */
+	virtual void AcquisitonForceTrigger() =0;
+
+	/**
+		@brief Stop the device from capturing further waveforms
+	 */
+	virtual void AcquisitonStop() =0;
+
+
+	//-- Probe Configuration --//
+	/**
+		@brief Enable or disable the probe on channel `chIndex`, enable if `enabled==true`
+	 */
+	virtual void SetProbeEnabled(size_t chIndex, bool enabled) =0;
+
+	/**
+		@brief Set the coupling of the probe on channel `chIndex` to `coupling`
+	 */
+	virtual void SetProbeCoupling(size_t chIndex, const std::string& coupling) =0;
+
+	/**
+		@brief Set the requested voltage range of the probe on channel `chIndex`
+		       to `range` (Volts max-to-min)
+	 */
+	virtual void SetProbeRange(size_t chIndex, double range_V) =0;
+
+	/**
+		@brief Set the requested voltage offset of the probe on channel `chIndex`
+		       to `offset` (Volts)
+	 */
+	virtual void SetProbeOffset(size_t chIndex, double offset_V) =0;
+
+	//-- Sampling Configuration --//
+	/**
+		@brief Set sample rate in Hz
+	 */
+	virtual void SetSampleRate(uint64_t rate_hz) =0;
+
+	/**
+		@brief Set sample rate in samples
+	 */
+	virtual void SetSampleDepth(uint64_t depth) =0;
+
+	//-- Trigger Configuration --//
+	/**
+		@brief Set trigger delay in femptoseconds
+	 */
+	virtual void SetTriggerDelay(uint64_t delay_fs) =0;
+
+	/**
+		@brief Set trigger source to the probe on channel `chIndex`
+	 */
+	virtual void SetTriggerSource(size_t chIndex) =0;
+
+	//-- (Edge) Trigger Configuration --//
+	/**
+		@brief Configure the device to use an edge trigger
+	 */
+	virtual void SetTriggerTypeEdge() =0;
+
+	/**
+		@brief Set the edge trigger's level to `level` in Volts
+	 */
+	virtual void SetEdgeTriggerLevel(double level_V) =0;
+
+	/**
+		@brief Set the edge trigger's activation to the edge `edge`
+		       ("RISING", "FALLING", ...)
+	 */
+	virtual void SetEdgeTriggerEdge(const std::string& edge) =0;
 };
 
 #endif

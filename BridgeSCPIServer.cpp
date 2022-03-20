@@ -28,6 +28,8 @@
 ***********************************************************************************************************************/
 
 #include "BridgeSCPIServer.h"
+#include <stdexcept>
+#include "../log/log.h"
 
 #define FS_PER_SECOND 1e15
 #define SECONDS_PER_FS 1e-15
@@ -44,6 +46,133 @@ BridgeSCPIServer::BridgeSCPIServer(ZSOCKET sock)
 
 BridgeSCPIServer::~BridgeSCPIServer()
 {
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Helpers
+
+bool BridgeSCPIServer::ParseDouble(const std::string& s, double& v)
+{
+	try {
+		v = stod(s);
+		return true;
+	} catch (const std::invalid_argument& ia) {
+		LogWarning("Invalid double: %s\n", s.c_str());
+		return false;
+	}
+}
+
+bool BridgeSCPIServer::ParseUint64(const std::string& s, uint64_t& v)
+{
+	try {
+		v = stoull(s);
+		return true;
+	} catch (const std::invalid_argument& ia) {
+		LogWarning("Invalid u64: %s\n", s.c_str());
+		return false;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Command processing
+
+bool BridgeSCPIServer::OnCommand(const std::string& line, const std::string& subject,
+                                 const std::string& cmd, const std::vector<std::string>& args)
+{
+	if (subject == "") {
+		// Device commands
+
+		if (cmd == "START")
+			AcquisitonStart(false);
+		else if (cmd == "SINGLE")
+			AcquisitonStart(true);
+		else if (cmd == "FORCE")
+			AcquisitonForceTrigger();
+		else if (cmd == "STOP")
+			AcquisitonStop();
+		else if (cmd == "RATE" && args.size() == 1) {
+			uint64_t arg;
+			if (ParseUint64(args[0], arg))
+				SetSampleRate(arg);
+			else
+				return false;
+		}
+		else if (cmd == "DEPTH" && args.size() == 1) {
+			uint64_t arg;
+			if (ParseUint64(args[0], arg))
+				SetSampleDepth(arg);
+			else
+				return false;
+		}
+		else
+			return false;
+	} else {
+		if (subject == "TRIG") {
+			// Trigger commands
+
+			if (cmd == "DELAY" && args.size() == 1) {
+				uint64_t arg;
+				if (ParseUint64(args[0], arg))
+					SetTriggerDelay(arg);
+				else
+					return false;
+			}
+			else if (cmd == "SOU" && args.size() == 1) {
+				uint64_t arg;
+				if (ParseUint64(args[0], arg))
+					SetTriggerSource(arg);
+				else
+					return false;
+			}
+			else if (cmd == "MODE" && args.size() == 1) {
+				if (args[0] == "EDGE")
+					SetTriggerTypeEdge();
+				else
+					return false;
+			}
+			else if (cmd == "LEV" && args.size() == 1) {
+				double arg;
+				if (ParseDouble(args[0], arg))
+					SetEdgeTriggerLevel(arg);
+				else
+					return false;
+			}
+			else if (cmd == "EDGE:DIR" && args.size() == 1)
+				SetEdgeTriggerEdge(args[0]);
+			else
+				return false;
+		} else {
+			// Channel commands (probably)
+
+			size_t channelId = GetChannelID(subject);
+			if (channelId == -1) return false;
+
+			if (cmd == "ON")
+				SetProbeEnabled(channelId, true);
+			else if (cmd == "OFF")
+				SetProbeEnabled(channelId, false);
+			else if (cmd == "COUP" && args.size() == 1)
+				SetProbeCoupling(channelId, args[0]);
+			else if (cmd == "RANGE" && args.size() == 1) {
+				double arg;
+				if (ParseDouble(args[0], arg))
+					SetProbeRange(channelId, arg);
+				else
+					return false;
+			}
+			else if (cmd == "OFFSET" && args.size() == 1) {
+				double arg;
+				if (ParseDouble(args[0], arg))
+					SetProbeOffset(channelId, arg);
+				else
+					return false;
+			}
+			else
+				return false;
+		}
+	}
+
+	return true;	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

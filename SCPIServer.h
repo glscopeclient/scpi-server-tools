@@ -56,7 +56,12 @@ protected:
 		bool& query,
 		std::vector<std::string>& args);
 
-	virtual void OnCommand(
+	/**
+		@brief Process a command
+
+		@return True if the command was recognized and processed, false if unknown or invalid.
+	 */
+	virtual bool OnCommand(
 		const std::string& line,
 		const std::string& subject,
 		const std::string& cmd,
@@ -79,7 +84,7 @@ protected:
 	/**
 		@brief Converts a string name (for example "C2") to an implementation-specific numeric channel ID.
 
-		This function returns zero if the subject is not a well formed channel name.
+		This function returns -1 if the subject is not a well formed channel name.
 
 		@param subject The channel name
 	 */
