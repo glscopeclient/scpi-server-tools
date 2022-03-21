@@ -28,6 +28,8 @@
 ***********************************************************************************************************************/
 
 #include "BridgeSCPIServer.h"
+#include <stdexcept>
+#include "../log/log.h"
 
 #define FS_PER_SECOND 1e15
 #define SECONDS_PER_FS 1e-15
@@ -47,10 +49,180 @@ BridgeSCPIServer::~BridgeSCPIServer()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Helpers
+
+bool BridgeSCPIServer::ParseDouble(const std::string& s, double& v)
+{
+	try
+	{
+		v = stod(s);
+		return true;
+	}
+	catch (const std::invalid_argument& ia)
+	{
+		LogWarning("Invalid double: %s\n", s.c_str());
+		return false;
+	}
+}
+
+bool BridgeSCPIServer::ParseUint64(const std::string& s, uint64_t& v)
+{
+	try
+	{
+		v = stoull(s);
+		return true;
+	}
+	catch (const std::invalid_argument& ia)
+	{
+		LogWarning("Invalid u64: %s\n", s.c_str());
+		return false;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Command processing
+
+bool BridgeSCPIServer::OnCommand(const std::string& line, const std::string& subject,
+                                 const std::string& cmd, const std::vector<std::string>& args)
+{
+	(void) line;
+
+	if (subject == "")
+	{
+		// Device commands
+
+		if (cmd == "START")
+			AcquisitionStart(false);
+		else if (cmd == "SINGLE")
+			AcquisitionStart(true);
+		else if (cmd == "FORCE")
+			AcquisitionForceTrigger();
+		else if (cmd == "STOP")
+			AcquisitionStop();
+		else if (cmd == "RATE" && args.size() == 1)
+		{
+			uint64_t arg;
+			if (ParseUint64(args[0], arg))
+				SetSampleRate(arg);
+			else
+				return false;
+		}
+		else if (cmd == "DEPTH" && args.size() == 1)
+		{
+			uint64_t arg;
+			if (ParseUint64(args[0], arg))
+				SetSampleDepth(arg);
+			else
+				return false;
+		}
+		else
+			return false;
+	}
+	else
+	{
+		if (subject == "TRIG")
+		{
+			// Trigger commands
+
+			if (cmd == "DELAY" && args.size() == 1)
+			{
+				uint64_t arg;
+				if (ParseUint64(args[0], arg))
+					SetTriggerDelay(arg);
+				else
+					return false;
+			}
+			else if (cmd == "SOU" && args.size() == 1)
+			{
+				size_t arg;
+				if (GetChannelID(args[0], arg))
+					SetTriggerSource(arg);
+				else
+					return false;
+			}
+			else if (cmd == "MODE" && args.size() == 1)
+			{
+				if (args[0] == "EDGE")
+					SetTriggerTypeEdge();
+				else
+					return false;
+			}
+			else if (cmd == "LEV" && args.size() == 1)
+			{
+				double arg;
+				if (ParseDouble(args[0], arg))
+					SetTriggerLevel(arg);
+				else
+					return false;
+			}
+			else if (cmd == "EDGE:DIR" && args.size() == 1)
+				SetEdgeTriggerEdge(args[0]);
+			else
+				return false;
+		}
+		else
+		{
+			// Channel commands (probably)
+
+			size_t channelId;
+
+			if (!GetChannelID(subject, channelId)) return false;
+
+			ChannelType channelType = GetChannelType(channelId);
+
+			if (cmd == "ON")
+				SetChannelEnabled(channelId, true);
+			else if (cmd == "OFF")
+				SetChannelEnabled(channelId, false);
+			else if (cmd == "COUP" && channelType == CH_ANALOG && args.size() == 1)
+				SetAnalogCoupling(channelId, args[0]);
+			else if (cmd == "RANGE" && channelType == CH_ANALOG && args.size() == 1)
+			{
+				double arg;
+				if (ParseDouble(args[0], arg))
+					SetAnalogRange(channelId, arg);
+				else
+					return false;
+			}
+			else if (cmd == "OFFS" && channelType == CH_ANALOG && args.size() == 1)
+			{
+				double arg;
+				if (ParseDouble(args[0], arg))
+					SetAnalogOffset(channelId, arg);
+				else
+					return false;
+			}
+			else if (cmd == "THRESH" && channelType == CH_DIGITAL && args.size() == 1)
+			{
+				double arg;
+				if (ParseDouble(args[0], arg))
+					SetDigitalThreshold(channelId, arg);
+				else
+					return false;
+			}
+			else if (cmd == "HYS" && channelType == CH_DIGITAL && args.size() == 1)
+			{
+				double arg;
+				if (ParseDouble(args[0], arg))
+					SetDigitalHysteresis(channelId, arg);
+				else
+					return false;
+			}
+			else
+				return false;
+		}
+	}
+
+	return true;	
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Query processing
 
 bool BridgeSCPIServer::OnQuery(const string& line, const string& subject, const string& cmd)
 {
+	(void) line; (void) subject;
+
 	//Read ID code
 	if(cmd == "*IDN")
 		SendReply(GetMake() + "," + GetModel() + "," + GetSerial() + "," + GetFirmwareVersion());
