@@ -53,10 +53,13 @@ BridgeSCPIServer::~BridgeSCPIServer()
 
 bool BridgeSCPIServer::ParseDouble(const std::string& s, double& v)
 {
-	try {
+	try
+	{
 		v = stod(s);
 		return true;
-	} catch (const std::invalid_argument& ia) {
+	}
+	catch (const std::invalid_argument& ia)
+	{
 		LogWarning("Invalid double: %s\n", s.c_str());
 		return false;
 	}
@@ -64,10 +67,13 @@ bool BridgeSCPIServer::ParseDouble(const std::string& s, double& v)
 
 bool BridgeSCPIServer::ParseUint64(const std::string& s, uint64_t& v)
 {
-	try {
+	try
+	{
 		v = stoull(s);
 		return true;
-	} catch (const std::invalid_argument& ia) {
+	}
+	catch (const std::invalid_argument& ia)
+	{
 		LogWarning("Invalid u64: %s\n", s.c_str());
 		return false;
 	}
@@ -81,7 +87,8 @@ bool BridgeSCPIServer::OnCommand(const std::string& line, const std::string& sub
 {
 	(void) line;
 
-	if (subject == "") {
+	if (subject == "")
+	{
 		// Device commands
 
 		if (cmd == "START")
@@ -92,14 +99,16 @@ bool BridgeSCPIServer::OnCommand(const std::string& line, const std::string& sub
 			AcquisitionForceTrigger();
 		else if (cmd == "STOP")
 			AcquisitionStop();
-		else if (cmd == "RATE" && args.size() == 1) {
+		else if (cmd == "RATE" && args.size() == 1)
+		{
 			uint64_t arg;
 			if (ParseUint64(args[0], arg))
 				SetSampleRate(arg);
 			else
 				return false;
 		}
-		else if (cmd == "DEPTH" && args.size() == 1) {
+		else if (cmd == "DEPTH" && args.size() == 1)
+		{
 			uint64_t arg;
 			if (ParseUint64(args[0], arg))
 				SetSampleDepth(arg);
@@ -108,31 +117,38 @@ bool BridgeSCPIServer::OnCommand(const std::string& line, const std::string& sub
 		}
 		else
 			return false;
-	} else {
-		if (subject == "TRIG") {
+	}
+	else
+	{
+		if (subject == "TRIG")
+		{
 			// Trigger commands
 
-			if (cmd == "DELAY" && args.size() == 1) {
+			if (cmd == "DELAY" && args.size() == 1)
+			{
 				uint64_t arg;
 				if (ParseUint64(args[0], arg))
 					SetTriggerDelay(arg);
 				else
 					return false;
 			}
-			else if (cmd == "SOU" && args.size() == 1) {
+			else if (cmd == "SOU" && args.size() == 1)
+			{
 				size_t arg;
 				if (GetChannelID(args[0], arg))
 					SetTriggerSource(arg);
 				else
 					return false;
 			}
-			else if (cmd == "MODE" && args.size() == 1) {
+			else if (cmd == "MODE" && args.size() == 1)
+			{
 				if (args[0] == "EDGE")
 					SetTriggerTypeEdge();
 				else
 					return false;
 			}
-			else if (cmd == "LEV" && args.size() == 1) {
+			else if (cmd == "LEV" && args.size() == 1)
+			{
 				double arg;
 				if (ParseDouble(args[0], arg))
 					SetTriggerLevel(arg);
@@ -143,7 +159,9 @@ bool BridgeSCPIServer::OnCommand(const std::string& line, const std::string& sub
 				SetEdgeTriggerEdge(args[0]);
 			else
 				return false;
-		} else {
+		}
+		else
+		{
 			// Channel commands (probably)
 
 			size_t channelId;
@@ -158,28 +176,32 @@ bool BridgeSCPIServer::OnCommand(const std::string& line, const std::string& sub
 				SetChannelEnabled(channelId, false);
 			else if (cmd == "COUP" && channelType == CH_ANALOG && args.size() == 1)
 				SetAnalogCoupling(channelId, args[0]);
-			else if (cmd == "RANGE" && channelType == CH_ANALOG && args.size() == 1) {
+			else if (cmd == "RANGE" && channelType == CH_ANALOG && args.size() == 1)
+			{
 				double arg;
 				if (ParseDouble(args[0], arg))
 					SetAnalogRange(channelId, arg);
 				else
 					return false;
 			}
-			else if (cmd == "OFFS" && channelType == CH_ANALOG && args.size() == 1) {
+			else if (cmd == "OFFS" && channelType == CH_ANALOG && args.size() == 1)
+			{
 				double arg;
 				if (ParseDouble(args[0], arg))
 					SetAnalogOffset(channelId, arg);
 				else
 					return false;
 			}
-			else if (cmd == "THRESH" && channelType == CH_DIGITAL && args.size() == 1) {
+			else if (cmd == "THRESH" && channelType == CH_DIGITAL && args.size() == 1)
+			{
 				double arg;
 				if (ParseDouble(args[0], arg))
 					SetDigitalThreshold(channelId, arg);
 				else
 					return false;
 			}
-			else if (cmd == "HYS" && channelType == CH_DIGITAL && args.size() == 1) {
+			else if (cmd == "HYS" && channelType == CH_DIGITAL && args.size() == 1)
+			{
 				double arg;
 				if (ParseDouble(args[0], arg))
 					SetDigitalHysteresis(channelId, arg);

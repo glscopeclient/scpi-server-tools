@@ -196,7 +196,8 @@ protected:
 	 */
 	virtual bool GetChannelID(const std::string& subject, size_t& id_out) =0;
 
-	enum ChannelType {
+	enum ChannelType
+	{
 		CH_ANALOG,
 		CH_DIGITAL,
 		CH_EXTERNAL_TRIGGER
