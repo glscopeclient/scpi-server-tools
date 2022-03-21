@@ -118,8 +118,9 @@ bool BridgeSCPIServer::OnCommand(const std::string& line, const std::string& sub
 					return false;
 			}
 			else if (cmd == "SOU" && args.size() == 1) {
-				uint64_t arg;
-				if (ParseUint64(args[0], arg))
+				size_t arg;
+				bool is_digital;
+				if (GetChannelID(args[0], arg, is_digital))
 					SetTriggerSource(arg);
 				else
 					return false;
@@ -162,10 +163,24 @@ bool BridgeSCPIServer::OnCommand(const std::string& line, const std::string& sub
 				else
 					return false;
 			}
-			else if (cmd == "OFFSET" && args.size() == 1) {
+			else if (cmd == "OFFS" && args.size() == 1) {
 				double arg;
 				if (ParseDouble(args[0], arg))
 					SetProbeOffset(channelId, arg);
+				else
+					return false;
+			}
+			else if (cmd == "THRESH" && args.size() == 1) {
+				double arg;
+				if (ParseDouble(args[0], arg))
+					SetProbeDigitalThreshold(channelId, arg);
+				else
+					return false;
+			}
+			else if (cmd == "HYS" && args.size() == 1) {
+				double arg;
+				if (ParseDouble(args[0], arg))
+					SetProbeDigitalHysteresis(channelId, arg);
 				else
 					return false;
 			}

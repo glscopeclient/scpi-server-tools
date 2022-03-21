@@ -138,6 +138,16 @@ protected:
 	 */
 	virtual void SetProbeOffset(size_t chIndex, double offset_V) =0;
 
+	/**
+		@brief Set the threshold for a digital HIGH on the probe on channel `chIndex`
+	 */
+	virtual void SetProbeDigitalThreshold(size_t chIndex, double threshold_V) =0;
+
+	/**
+		@brief Set the hysteresis value for the digital probe on channel `chIndex`
+	 */
+	virtual void SetProbeDigitalHysteresis(size_t chIndex, double hysteresis) =0;
+
 	//-- Sampling Configuration --//
 	/**
 		@brief Set sample rate in Hz
