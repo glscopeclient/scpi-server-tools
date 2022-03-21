@@ -81,14 +81,6 @@ protected:
 		const std::string& subject,
 		const std::string& cmd) =0;
 
-	/**
-		@brief Converts a string name (for example "C2") to an implementation-specific numeric channel ID,
-		       and indicates if it is a digital channel.
-
-		This function returns true if the conversion succeeds, placing results into id_out and digitial_out.
-	 */
-	virtual bool GetChannelID(const std::string& subject, size_t& id_out, bool& digital_out) =0;
-
 protected:
 	Socket m_socket;
 };

@@ -119,34 +119,34 @@ protected:
 	/**
 		@brief Enable or disable the probe on channel `chIndex`, enable if `enabled==true`
 	 */
-	virtual void SetProbeEnabled(size_t chIndex, bool enabled) =0;
+	virtual void SetChannelEnabled(size_t chIndex, bool enabled) =0;
 
 	/**
 		@brief Set the coupling of the probe on channel `chIndex` to `coupling`
 	 */
-	virtual void SetProbeCoupling(size_t chIndex, const std::string& coupling) =0;
+	virtual void SetAnalogCoupling(size_t chIndex, const std::string& coupling) =0;
 
 	/**
 		@brief Set the requested voltage range of the probe on channel `chIndex`
 		       to `range` (Volts max-to-min)
 	 */
-	virtual void SetProbeRange(size_t chIndex, double range_V) =0;
+	virtual void SetAnalogRange(size_t chIndex, double range_V) =0;
 
 	/**
 		@brief Set the requested voltage offset of the probe on channel `chIndex`
 		       to `offset` (Volts)
 	 */
-	virtual void SetProbeOffset(size_t chIndex, double offset_V) =0;
+	virtual void SetAnalogOffset(size_t chIndex, double offset_V) =0;
 
 	/**
-		@brief Set the threshold for a digital HIGH on the probe on channel `chIndex`
+		@brief Set the threshold for a digital HIGH on the channel `chIndex`
 	 */
-	virtual void SetProbeDigitalThreshold(size_t chIndex, double threshold_V) =0;
+	virtual void SetDigitalThreshold(size_t chIndex, double threshold_V) =0;
 
 	/**
-		@brief Set the hysteresis value for the digital probe on channel `chIndex`
+		@brief Set the hysteresis value for the digital channel `chIndex`
 	 */
-	virtual void SetProbeDigitalHysteresis(size_t chIndex, double hysteresis) =0;
+	virtual void SetDigitalHysteresis(size_t chIndex, double hysteresis) =0;
 
 	//-- Sampling Configuration --//
 	/**
@@ -186,6 +186,26 @@ protected:
 		       ("RISING", "FALLING", ...)
 	 */
 	virtual void SetEdgeTriggerEdge(const std::string& edge) =0;
+
+	//-- Channel Information --//
+	/**
+		@brief Converts a string name (for example "C2") to an implementation-specific numeric channel ID.
+		       The channel id must uniquely identify the channel across types/banks.
+
+		This function returns true if the conversion succeeds, placing results into id_out.
+	 */
+	virtual bool GetChannelID(const std::string& subject, size_t& id_out) =0;
+
+	enum ChannelType {
+		CH_ANALOG,
+		CH_DIGITAL,
+		CH_EXTERNAL_TRIGGER
+	};
+
+	/**
+		@brief Given a valid channel ID, return it's type.
+	 */
+	virtual ChannelType GetChannelType(size_t channel) =0;
 };
 
 #endif

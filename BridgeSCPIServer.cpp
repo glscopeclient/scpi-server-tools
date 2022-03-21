@@ -79,6 +79,8 @@ bool BridgeSCPIServer::ParseUint64(const std::string& s, uint64_t& v)
 bool BridgeSCPIServer::OnCommand(const std::string& line, const std::string& subject,
                                  const std::string& cmd, const std::vector<std::string>& args)
 {
+	(void) line;
+
 	if (subject == "") {
 		// Device commands
 
@@ -119,8 +121,7 @@ bool BridgeSCPIServer::OnCommand(const std::string& line, const std::string& sub
 			}
 			else if (cmd == "SOU" && args.size() == 1) {
 				size_t arg;
-				bool is_digital;
-				if (GetChannelID(args[0], arg, is_digital))
+				if (GetChannelID(args[0], arg))
 					SetTriggerSource(arg);
 				else
 					return false;
@@ -146,41 +147,42 @@ bool BridgeSCPIServer::OnCommand(const std::string& line, const std::string& sub
 			// Channel commands (probably)
 
 			size_t channelId;
-			bool isDigital;
 
-			if (!GetChannelID(subject, channelId, isDigital)) return false;
+			if (!GetChannelID(subject, channelId)) return false;
+
+			ChannelType channelType = GetChannelType(channelId);
 
 			if (cmd == "ON")
-				SetProbeEnabled(channelId, true);
+				SetChannelEnabled(channelId, true);
 			else if (cmd == "OFF")
-				SetProbeEnabled(channelId, false);
-			else if (cmd == "COUP" && args.size() == 1)
-				SetProbeCoupling(channelId, args[0]);
-			else if (cmd == "RANGE" && args.size() == 1) {
+				SetChannelEnabled(channelId, false);
+			else if (cmd == "COUP" && channelType == CH_ANALOG && args.size() == 1)
+				SetAnalogCoupling(channelId, args[0]);
+			else if (cmd == "RANGE" && channelType == CH_ANALOG && args.size() == 1) {
 				double arg;
 				if (ParseDouble(args[0], arg))
-					SetProbeRange(channelId, arg);
+					SetAnalogRange(channelId, arg);
 				else
 					return false;
 			}
-			else if (cmd == "OFFS" && args.size() == 1) {
+			else if (cmd == "OFFS" && channelType == CH_ANALOG && args.size() == 1) {
 				double arg;
 				if (ParseDouble(args[0], arg))
-					SetProbeOffset(channelId, arg);
+					SetAnalogOffset(channelId, arg);
 				else
 					return false;
 			}
-			else if (cmd == "THRESH" && args.size() == 1) {
+			else if (cmd == "THRESH" && channelType == CH_DIGITAL && args.size() == 1) {
 				double arg;
 				if (ParseDouble(args[0], arg))
-					SetProbeDigitalThreshold(channelId, arg);
+					SetDigitalThreshold(channelId, arg);
 				else
 					return false;
 			}
-			else if (cmd == "HYS" && args.size() == 1) {
+			else if (cmd == "HYS" && channelType == CH_DIGITAL && args.size() == 1) {
 				double arg;
 				if (ParseDouble(args[0], arg))
-					SetProbeDigitalHysteresis(channelId, arg);
+					SetDigitalHysteresis(channelId, arg);
 				else
 					return false;
 			}
@@ -197,6 +199,8 @@ bool BridgeSCPIServer::OnCommand(const std::string& line, const std::string& sub
 
 bool BridgeSCPIServer::OnQuery(const string& line, const string& subject, const string& cmd)
 {
+	(void) line; (void) subject;
+
 	//Read ID code
 	if(cmd == "*IDN")
 		SendReply(GetMake() + "," + GetModel() + "," + GetSerial() + "," + GetFirmwareVersion());
