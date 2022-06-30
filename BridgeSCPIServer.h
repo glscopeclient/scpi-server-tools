@@ -114,6 +114,11 @@ protected:
 	 */
 	virtual void AcquisitionStop() =0;
 
+	/**
+		@brief Checks if the trigger is currently armed\
+	 */
+	virtual bool IsTriggerArmed() =0;
+
 
 	//-- Probe Configuration --//
 	/**
@@ -175,7 +180,7 @@ protected:
 		@brief Set the trigger's level to `level` in Volts
 	 */
 	virtual void SetTriggerLevel(double level_V) =0;
-	
+
 	/**
 		@brief Configure the device to use an edge trigger
 	 */

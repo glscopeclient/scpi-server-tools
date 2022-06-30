@@ -213,7 +213,7 @@ bool BridgeSCPIServer::OnCommand(const std::string& line, const std::string& sub
 		}
 	}
 
-	return true;	
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -230,6 +230,15 @@ bool BridgeSCPIServer::OnQuery(const string& line, const string& subject, const 
 	//Get number of channels
 	else if(cmd == "CHANS")
 		SendReply(to_string(GetAnalogChannelCount()));
+
+	//Checks if we're armed
+	else if(cmd == "ARMED")
+	{
+		if(IsTriggerArmed())
+			SendReply("1");
+		else
+			SendReply("0");
+	}
 
 	//Get legal sample rates for the current configuration
 	else if(cmd == "RATES")
